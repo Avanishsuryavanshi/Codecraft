@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CodeQuest Editor</title>
+
+  <!-- CodeMirror CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+
+  <style>
+    /* General Layout */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0D1117;
+      color: #C9D1D9;
+      overflow: hidden;
+    }
+
+    nav {
+      background-color: #161B22;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav h1 {
+      color: #58A6FF;
+      margin: 0;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      margin: 0;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: #C9D1D9;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    nav ul li .active {
+      color: #58A6FF;
+      font-weight: bold;
+    }
+
+    .main {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* Code Box + Explanation Split Panel */
+    .editor-container,
+    .output-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-container {
+      background-color: #161B22;
+      border-right: 1px solid #30363D;
+    }
+
+    .output-container {
+      background-color: #21262D;
+    }
+
+    h2 {
+      color: #58A6FF;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    /* CodeMirror Editor Styling */
+    .CodeMirror {
+      flex-grow: 1;
+      min-height: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #30363D;
+      background-color: #9eb1bcbd;
+    }
+
+    button {
+      background-color: #238636;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: 0.3s;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #2EA043;
+    }
+
+    #explanation {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.5;
+      margin-top: 15px;
+      flex-grow: 1;
+      border: 1px solid #30363D;
+      padding: 15px;
+      border-radius: 5px;
+      background-color: #0D1117;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: column;
+      }
+
+      .editor-container,
+      .output-container {
+        border: none;
+        height: 50%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <h1>CodeQuest</h1>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#" class="active">Editor</a></li>
+      <li><a href="#">Challenges</a></li>
+      <li><a href="#">Leaderboard</a></li>
+      <li><a href="#">Visualizer</a></li>
+    </ul>
+  </nav>
+
+  <!-- Split Panel: Editor + Explanation -->
+  <div class="main">
+    <!-- Code Editor -->
+    <div class="editor-container">
+      <h2>Code Editor</h2>
+      <textarea id="code"></textarea>
+      <button id="run-btn">Run Code</button>
+    </div>
+
+    <!-- AI Explanation -->
+    <div class="output-container">
+      <h2>AI Explanation</h2>
+      <div id="explanation">Your explanation will appear here...</div>
+    </div>
+  </div>
+
+  <!-- JavaScript to hook CodeMirror and send code -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: "python",
+        theme: "darcula",
+        lineNumbers: true,
+        autoCloseBrackets: true
+      });
+
+      editor.setSize(null, "100%");
+
+      document.getElementById("run-btn").addEventListener("click", function () {
+        const code = editor.getValue();
+
+        fetch("/explain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("explanation").innerText = data.explanation;
+        })
+        .catch(err => {
+          document.getElementById("explanation").innerText = "Error fetching explanation.";
+          console.error(err);
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

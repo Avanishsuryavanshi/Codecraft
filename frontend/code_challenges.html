@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Challenges | CodeQuest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .challenge-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .challenge-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .difficulty-easy {
+            border-left: 4px solid #10b981;
+        }
+        .difficulty-medium {
+            border-left: 4px solid #f59e0b;
+        }
+        .difficulty-hard {
+            border-left: 4px solid #ef4444;
+        }
+        .progress-bar {
+            height: 6px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-code text-blue-400 text-xl"></i>
+                <span class="text-xl font-bold">CodeQuest</span>
+            </div>
+            <div class="flex space-x-6 ml-10">
+                <a href="index.html" class="hover:text-blue-400 transition">Home</a>
+                <a href="editor.html" class="hover:text-blue-400 transition">Editor</a>
+                <a href="#" class="text-blue-400 font-medium">Challenges</a>
+                <a href="visualizer.html" class="hover:text-blue-400 transition">Visualizer</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition">Leaderboard</a>
+            </div>
+            <div class="ml-auto flex items-center space-x-4">
+                <span class="text-blue-400">100 XP</span>
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md">
+                    <i class="fas fa-user mr-2"></i>Profile
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Coding Challenges</h1>
+            <div class="flex space-x-2">
+                <button id="filterAll" class="bg-blue-600 px-4 py-2 rounded-md">All</button>
+                <button id="filterEasy" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md">Easy</button>
+                <button id="filterMedium" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md">Medium</button>
+                <button id="filterHard" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md">Hard</button>
+            </div>
+        </div>
+
+        <!-- Progress Overview -->
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-bold mb-4">Your Progress</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2">
+                        <span>Easy Challenges</span>
+                        <span>2/5 completed</span>
+                    </div>
+                    <div class="progress-bar bg-gray-600 rounded-full overflow-hidden">
+                        <div class="bg-green-500 h-full" style="width: 40%"></div>
+                    </div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2">
+                        <span>Medium Challenges</span>
+                        <span>1/5 completed</span>
+                    </div>
+                    <div class="progress-bar bg-gray-600 rounded-full overflow-hidden">
+                        <div class="bg-yellow-500 h-full" style="width: 20%"></div>
+                    </div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2">
+                        <span>Hard Challenges</span>
+                        <span>0/5 completed</span>
+                    </div>
+                    <div class="progress-bar bg-gray-600 rounded-full overflow-hidden">
+                        <div class="bg-red-500 h-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenges List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Challenge 1 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-easy">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">Sum of Two Numbers</h3>
+                        <span class="bg-green-900 text-green-300 text-xs px-2 py-1 rounded">Easy</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Write a function that returns the sum of two numbers.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>50 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=sum" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                        <span>Completed 2 days ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge 2 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-easy">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">Find Maximum</h3>
+                        <span class="bg-green-900 text-green-300 text-xs px-2 py-1 rounded">Easy</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Write a function that returns the maximum number in an array.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>50 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=max" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                        <span>Completed 1 day ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge 3 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-medium">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">Palindrome Checker</h3>
+                        <span class="bg-yellow-900 text-yellow-300 text-xs px-2 py-1 rounded">Medium</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Write a function that checks if a word is a palindrome.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>100 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=palindrome" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                        <span>Completed 5 hours ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge 4 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-medium">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">FizzBuzz</h3>
+                        <span class="bg-yellow-900 text-yellow-300 text-xs px-2 py-1 rounded">Medium</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Implement the classic FizzBuzz problem.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>100 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=fizzbuzz" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-times-circle text-red-500 mr-1"></i>
+                        <span>Not completed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge 5 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-hard">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">Binary Search</h3>
+                        <span class="bg-red-900 text-red-300 text-xs px-2 py-1 rounded">Hard</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Implement the binary search algorithm.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>200 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=binarysearch" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-times-circle text-red-500 mr-1"></i>
+                        <span>Not completed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge 6 -->
+            <div class="challenge-card bg-gray-800 rounded-lg overflow-hidden difficulty-hard">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold">Bubble Sort</h3>
+                        <span class="bg-red-900 text-red-300 text-xs px-2 py-1 rounded">Hard</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">Implement the bubble sort algorithm.</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-1 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <span>200 XP</span>
+                        </div>
+                        <a href="editor.html?challenge=bubblesort" class="text-blue-400 hover:text-blue-300 flex items-center">
+                            Solve Challenge <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fas fa-times-circle text-red-500 mr-1"></i>
+                        <span>Not completed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="main.js"></script>
+    <script>
+        // Filter challenges by difficulty
+        document.getElementById('filterAll').addEventListener('click', () => {
+            document.querySelectorAll('.challenge-card').forEach(card => {
+                card.classList.remove('hidden');
+            });
+            updateActiveFilter('filterAll');
+        });
+
+        document.getElementById('filterEasy').addEventListener('click', () => {
+            document.querySelectorAll('.challenge-card').forEach(card => {
+                card.classList.toggle('hidden', !card.classList.contains('difficulty-easy'));
+            });
+            updateActiveFilter('filterEasy');
+        });
+
+        document.getElementById('filterMedium').addEventListener('click', () => {
+            document.querySelectorAll('.challenge-card').forEach(card => {
+                card.classList.toggle('hidden', !card.classList.contains('difficulty-medium'));
+            });
+            updateActiveFilter('filterMedium');
+        });
+
+        document.getElementById('filterHard').addEventListener('click', () => {
+            document.querySelectorAll('.challenge-card').forEach(card => {
+                card.classList.toggle('hidden', !card.classList.contains('difficulty-hard'));
+            });
+            updateActiveFilter('filterHard');
+        });
+
+        function updateActiveFilter(activeId) {
+            // Reset all buttons
+            document.querySelectorAll('#filterAll, #filterEasy, #filterMedium, #filterHard').forEach(btn => {
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            // Set active button
+            const activeBtn = document.getElementById(activeId);
+            activeBtn.classList.add('bg-blue-600');
+            activeBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+        }
+
+        // Initialize
+        updateActiveFilter('filterAll');
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeQuest - Learn Coding with AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #1e293b;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      animation: fadeInDown 1s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
+    nav a {
+      color: #cbd5e1;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #38bdf8;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem;
+      animation: fadeIn 1.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #38bdf8;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      max-width: 700px;
+      margin: 0 auto 2rem;
+      color: #94a3b8;
+    }
+
+    .hero button {
+      padding: 0.75rem 1.5rem;
+      background-color: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .hero button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px #38bdf8;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 4rem 2rem;
+      background-color: #1e293b;
+      animation: fadeIn 1.5s ease-in 0.5s;
+    }
+
+    .feature {
+      background-color: #0f172a;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+
+    .feature h3 {
+      color: #38bdf8;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.875rem;
+      color: #64748b;
+      background-color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">CodeQuest</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Editor</a>
+      <a href="#">Challenges</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">Visualizer</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Gamified Coding. AI-Powered Learning.</h1>
+    <p>Join CodeQuest to learn coding the fun way! Solve challenges, visualize algorithms, and get instant AI explanations as you grow.</p>
+    <button onclick="window.location.href='editor.html'">Start Coding</button>
+  </section>
+
+  <section class="features">
+    <div class="feature" onclick="window.location.href='code_editor.html'" style="cursor: pointer;">
+        <h3>⚡ Code Editor with AI</h3>
+        <p>Type code in our smart editor and get instant explanations powered by AI.</p>
+      </div>
+      
+      <div class="feature" onclick="window.location.href='code_challenges.html'" style="cursor: pointer;">
+      <h3>🏆Exciting Coding problems</h3>
+      <p>Complete coding challenges to level up and earn achievements on your profile.</p>
+    </div>
+    <div class="feature">
+      <h3>📊 Visualize Data structure and algorithms</h3>
+      <p>Interactive visualizations for sorting, stacks, queues, and more — step-by-step.</p>
+    </div>
+    <div class="feature">
+      <h3>🌐 Drag and drop blocks</h3>
+      <p>Track your progress and see how you rank against others globally.</p>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2025 CodeQuest. All rights reserved.
+  </footer>
+</body>
+</html>
