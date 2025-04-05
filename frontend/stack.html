@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Visualization</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e1e2e, #25243c);
+      text-align: center;
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      background: linear-gradient(90deg, #4db6ac, #00796b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: titleGlow 2s infinite alternate;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    input {
+      padding: 12px;
+      width: 220px;
+      border-radius: 8px;
+      border: 1px solid #b2dfdb;
+      outline: none;
+      font-size: 1rem;
+      background-color: rgba(255,255,255,0.1);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #4db6ac;
+      box-shadow: 0 0 10px rgba(77, 182, 172, 0.5);
+      transform: scale(1.02);
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #004d40;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    button:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+
+    .stack-container {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 30px;
+      gap: 30px;
+    }
+
+    .stack-box {
+      background-color: #2a2a40;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      padding: 20px;
+      width: 220px;
+      min-height: 350px;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      border: 2px dashed #26a69a;
+      position: relative;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    .stack-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.4);
+    }
+
+    .stack-item {
+      background-color: #4db6ac;
+      border: 2px solid #00796b;
+      padding: 12px;
+      border-radius: 8px;
+      width: 90%;
+      margin: 8px 0;
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+      transition: all 0.4s ease;
+      position: relative;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: itemAppear 0.5s forwards;
+    }
+
+    .stack-item:nth-child(1) { animation-delay: 0.1s; }
+    .stack-item:nth-child(2) { animation-delay: 0.2s; }
+    .stack-item:nth-child(3) { animation-delay: 0.3s; }
+    .stack-item:nth-child(4) { animation-delay: 0.4s; }
+    .stack-item:nth-child(5) { animation-delay: 0.5s; }
+
+    .stack-item.top-item {
+      background-color: #ffeb3b;
+      color: black;
+      border: 2px solid #ffc107;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
+      z-index: 1;
+    }
+
+    .label {
+      font-weight: bold;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: #b2dfdb;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    #error-message {
+      color: #ff5252;
+      margin-top: 10px;
+      font-weight: bold;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      height: 20px;
+      animation: shake 0.5s;
+    }
+
+    .operation-info {
+      margin: 15px auto;
+      padding: 12px;
+      background: rgba(0, 121, 107, 0.3);
+      border-radius: 8px;
+      font-size: 1rem;
+      max-width: 500px;
+      border-left: 4px solid #4db6ac;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.4s ease;
+    }
+
+    .operation-info.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Top Pointer */
+    .top-pointer {
+      position: absolute;
+      left: -60px;
+      display: flex;
+      align-items: center;
+      transition: all 0.4s ease-in-out;
+    }
+
+    .arrow {
+      width: 15px;
+      height: 15px;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 15px solid yellow;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    .top-label {
+      background-color: yellow;
+      color: black;
+      padding: 6px 12px;
+      border-radius: 5px;
+      margin-left: 5px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* New arrow style that points to the top element */
+    .top-arrow {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 20px solid #ffeb3b;
+      animation: pulse 1s infinite, glow 2s infinite alternate;
+      filter: drop-shadow(0 2px 4px rgba(255, 235, 59, 0.5));
+    }
+
+    .top-arrow::after {
+      content: "TOP";
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: black;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    /* Animations */
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-5px); }
+    }
+
+    @keyframes pulse {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.1); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 5px rgba(255, 235, 59, 0.5)); }
+      to { filter: drop-shadow(0 0 10px rgba(255, 235, 59, 0.8)); }
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 1;
+      }
+      20% {
+        transform: scale(25, 25);
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(40, 40);
+      }
+    }
+
+    @keyframes itemAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pushAnimation {
+      0% { transform: translateY(-50px) scale(0.8); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    @keyframes popAnimation {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    @keyframes titleGlow {
+      from { text-shadow: 0 0 5px rgba(77, 182, 172, 0.5); }
+      to { text-shadow: 0 0 15px rgba(77, 182, 172, 0.8); }
+    }
+
+    /* Floating particles background */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      background-color: rgba(77, 182, 172, 0.3);
+      border-radius: 50%;
+      animation: float linear infinite;
+    }
+
+    @keyframes float {
+      to {
+        transform: translateY(-100vh);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      input, button {
+        width: 80%;
+      }
+      
+      .stack-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Floating particles background -->
+  <div class="particles" id="particles"></div>
+
+  <h1>Stack Visualization</h1>
+  <div class="controls">
+    <input type="text" id="stackValue" placeholder="Enter value" />
+    <button onclick="pushToStack()">Push</button>
+    <button onclick="popFromStack()">Pop</button>
+    <button onclick="peekStack()">Peek</button>
+    <button onclick="clearStack()">Clear</button>
+  </div>
+  <div id="error-message"></div>
+  <div id="operation-info" class="operation-info"></div>
+
+  <div class="stack-container">
+    <div>
+      <div class="label">Main Stack</div>
+      <div id="stack" class="stack-box">
+        <div id="topPointer" class="top-pointer" style="display: none;">
+          <div class="arrow"></div>
+          <div id="topLabel" class="top-label">Top</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="label">Popped Items</div>
+      <div id="popped-stack" class="stack-box"></div>
+    </div>
+  </div>
+
+  <script>
+    let stack = [];
+    let poppedStack = [];
+    const MAX_SIZE = 5; // Set a limit for the stack
+
+    // Create floating particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = Math.floor(window.innerWidth / 10);
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random properties
+        const size = Math.random() * 5 + 1;
+        const posX = Math.random() * window.innerWidth;
+        const posY = Math.random() * window.innerHeight;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * 5;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${posX}px`;
+        particle.style.top = `${posY}px`;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${delay}s`;
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    function updateStackUI(operation = null, value = null) {
+      const stackContainer = document.getElementById("stack");
+      const poppedContainer = document.getElementById("popped-stack");
+      const operationInfo = document.getElementById("operation-info");
+      const topPointer = document.getElementById("topPointer");
+      const topLabel = document.getElementById("topLabel");
+
+      // Highlight the operation performed
+      if (operation) {
+        let infoText = "";
+        let infoClass = "";
+        switch(operation) {
+          case 'push':
+            infoText = `📌 Pushed: ${value}`;
+            infoClass = "push-info";
+            break;
+          case 'pop':
+            infoText = `🚀 Popped: ${value}`;
+            infoClass = "pop-info";
+            break;
+          case 'peek':
+            infoText = `👁️ Peeked: ${value}`;
+            infoClass = "peek-info";
+            break;
+          case 'clear':
+            infoText = `🧹 Stack cleared`;
+            infoClass = "clear-info";
+            break;
+        }
+        operationInfo.innerHTML = infoText;
+        operationInfo.className = "operation-info show " + infoClass;
+      }
+
+      // Clear previous animations
+      stackContainer.querySelectorAll('.stack-item').forEach(item => {
+        item.style.animation = 'none';
+        item.offsetHeight; // Trigger reflow
+      });
+
+      // Create stack items with animations
+      stackContainer.innerHTML = "";
+      stack.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "stack-item";
+        
+        // Highlight the top item and add arrow
+        if (index === stack.length - 1) {
+          div.classList.add("top-item");
+          const arrow = document.createElement("div");
+          arrow.className = "top-arrow";
+          div.appendChild(arrow);
+          
+          // Special animation for newly pushed item
+          if (operation === 'push' && index === stack.length - 1) {
+            div.style.animation = 'pushAnimation 0.5s forwards';
+          }
+        }
+        
+        div.innerText = item;
+        stackContainer.appendChild(div);
+      });
+
+      // Update Popped Stack UI with animation
+      if (operation === 'pop' && value) {
+        const poppedDiv = document.createElement("div");
+        poppedDiv.className = "stack-item";
+        poppedDiv.innerText = value;
+        poppedDiv.style.animation = 'popAnimation 0.5s forwards';
+        poppedContainer.insertBefore(poppedDiv, poppedContainer.firstChild);
+      } else if (operation === 'clear') {
+        poppedContainer.innerHTML = "";
+      }
+
+      // Position the pointer on top of the last element
+      if (stack.length > 0) {
+        stackContainer.appendChild(topPointer);
+        topPointer.style.display = "flex";
+        
+        const lastItem = stackContainer.children[stack.length - 1];
+        if (lastItem) {
+          const itemRect = lastItem.getBoundingClientRect();
+          const containerRect = stackContainer.getBoundingClientRect();
+          topPointer.style.top = `${itemRect.top - containerRect.top - 30}px`;
+        }
+        
+        topLabel.innerText = `Top: ${stack[stack.length - 1]}`;
+      } else {
+        topPointer.style.display = "none";
+      }
+    }
+
+    function clearError() {
+      document.getElementById("error-message").innerText = "";
+    }
+
+    function showError(msg) {
+      const errorEl = document.getElementById("error-message");
+      errorEl.innerText = msg;
+      errorEl.style.animation = 'none';
+      errorEl.offsetHeight; // Trigger reflow
+      errorEl.style.animation = 'shake 0.5s';
+    }
+
+    function pushToStack() {
+      clearError();
+      if (stack.length >= MAX_SIZE) {
+        return showError("Stack Overflow! Maximum size reached.");
+      }
+      const value = document.getElementById("stackValue").value;
+      if (value === "") return showError("Please enter a value to push.");
+      
+      // Add push sound effect
+      playSound('push');
+      
+      stack.push(value);
+      document.getElementById("stackValue").value = "";
+      updateStackUI('push', value);
+    }
+
+    function popFromStack() {
+      clearError();
+      if (stack.length === 0) return showError("Stack Underflow! No elements to pop.");
+      
+      // Add pop sound effect
+      playSound('pop');
+      
+      const popped = stack.pop();
+      poppedStack.unshift(popped);
+      updateStackUI('pop', popped);
+    }
+
+    function peekStack() {
+      clearError();
+      if (stack.length === 0) return showError("Stack is empty.");
+      
+      // Add peek sound effect
+      playSound('peek');
+      
+      const topValue = stack[stack.length - 1];
+      updateStackUI('peek', topValue);
+      setTimeout(() => {
+        alert("🔍 Top of stack: " + topValue);
+      }, 100);
+    }
+
+    function clearStack() {
+      clearError();
+      
+      // Add clear sound effect
+      playSound('clear');
+      
+      stack = [];
+      poppedStack = [];
+      updateStackUI('clear');
+    }
+
+    // Simple sound effects
+    function playSound(type) {
+      // In a real implementation, you would play actual audio files
+      console.log(`Playing ${type} sound effect`);
+    }
+
+    // Initialize the UI and particles
+    window.onload = function() {
+      updateStackUI();
+      createParticles();
+      
+      // Add keyboard support
+      document.getElementById('stackValue').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          pushToStack();
+        }
+      });
+    };
+  </script>
+</body>
+</html>

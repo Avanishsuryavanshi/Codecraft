@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Graph Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0e1628;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #e0e8ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #3ea6ff;
+      margin-top: 20px;
+      font-size: 2rem;
+      text-shadow: 0 0 10px rgba(62, 166, 255, 0.7);
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .controls input, .controls button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .controls input {
+      background: #1a2238;
+      color: #ffffff;
+      border: 1px solid #3ea6ff;
+    }
+
+    .controls button {
+      background-color: #3ea6ff;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(62, 166, 255, 0.5);
+      transition: background 0.3s ease;
+    }
+
+    .controls button:hover {
+      background-color: #5dbbff;
+    }
+
+    #graph-container {
+      margin-top: 20px;
+      background: #111b30;
+      border: 2px solid #3ea6ff;
+      border-radius: 12px;
+      width: 90vw;
+      height: 600px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .node {
+      width: 50px;
+      height: 50px;
+      background-color: #3ea6ff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 50px;
+      color: #0e1628;
+      position: absolute;
+      font-weight: bold;
+      z-index: 2;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 12px rgba(62, 166, 255, 0.7);
+    }
+
+    .node:hover::after {
+      content: attr(data-info);
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1f33;
+      color: #e0e8ff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .edge {
+      position: absolute;
+      height: 2px;
+      background: #e0e8ff;
+      transform-origin: top left;
+      z-index: 1;
+    }
+
+    .edge:hover::after {
+      content: attr(data-info);
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1f33;
+      color: #e0e8ff;
+      padding: 3px 6px;
+      font-size: 0.75rem;
+      border-radius: 5px;
+    }
+
+    #log {
+      margin-top: 20px;
+      width: 90vw;
+      background: #1a1f33;
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      box-shadow: 0 0 10px rgba(14, 22, 40, 0.5);
+    }
+
+    #explanation {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #3ea6ff;
+      color: #0e1628;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1rem;
+      box-shadow: 0 0 15px rgba(62, 166, 255, 0.7);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Graph Visualization (Beginner Mode)</h1>
+
+  <div class="controls">
+    <input type="text" id="nodeId" placeholder="Node ID">
+    <input type="number" id="xPos" placeholder="X position">
+    <input type="number" id="yPos" placeholder="Y position">
+    <button onclick="addNode()">Add Node</button>
+    <input type="text" id="fromNode" placeholder="From Node">
+    <input type="text" id="toNode" placeholder="To Node">
+    <button onclick="addEdge()">Add Edge</button>
+    <button onclick="clearGraph()">Clear Graph</button>
+  </div>
+
+  <div id="graph-container"></div>
+  <div id="log"></div>
+  <div id="explanation"></div>
+
+  <script>
+    const container = document.getElementById('graph-container');
+    const logBox = document.getElementById('log');
+    const explainBox = document.getElementById('explanation');
+    const nodes = {};
+    const edges = [];
+
+    function showExplanation(message) {
+      explainBox.innerText = message;
+      explainBox.style.opacity = '1';
+      setTimeout(() => {
+        explainBox.style.opacity = '0';
+      }, 3000);
+    }
+
+    function log(msg) {
+      logBox.innerHTML += `<p>${msg}</p>`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function createNode(id, x, y) {
+      if (nodes[id]) {
+        log(`❗ Node '${id}' already exists.`);
+        showExplanation(`Node '${id}' already exists.`);
+        return;
+      }
+      const node = document.createElement('div');
+      node.className = 'node';
+      node.textContent = id;
+      node.setAttribute('data-info', `Node: ${id} (x:${x}, y:${y})`);
+      node.style.left = `${x}px`;
+      node.style.top = `${y}px`;
+      node.onclick = () => {
+        log(`🔍 You clicked node '${id}' at (${x}, ${y})`);
+        showExplanation(`Clicked node '${id}'`);
+      };
+      container.appendChild(node);
+      nodes[id] = { id, x, y, element: node };
+      log(`✅ Node '${id}' created at (${x}, ${y})`);
+      showExplanation(`Node '${id}' added!`);
+    }
+
+    function createEdge(fromId, toId) {
+      const from = nodes[fromId];
+      const to = nodes[toId];
+      if (!from || !to) {
+        log(`❌ Edge creation failed: Invalid node(s).`);
+        showExplanation('Edge creation failed.');
+        return;
+      }
+      if (edges.some(e => e.from === from && e.to === to)) {
+        log(`⚠️ Edge from '${fromId}' to '${toId}' already exists.`);
+        showExplanation('Edge already exists.');
+        return;
+      }
+
+      const edge = document.createElement('div');
+      edge.className = 'edge';
+      const x1 = from.x + 25, y1 = from.y + 25;
+      const x2 = to.x + 25, y2 = to.y + 25;
+      const length = Math.hypot(x2 - x1, y2 - y1);
+      const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+      edge.style.width = `${length}px`;
+      edge.style.left = `${x1}px`;
+      edge.style.top = `${y1}px`;
+      edge.style.transform = `rotate(${angle}deg)`;
+      edge.setAttribute('data-info', `From: ${fromId} ➜ To: ${toId}`);
+      container.appendChild(edge);
+      edges.push({ from, to, element: edge });
+
+      log(`🔗 Edge created from '${fromId}' to '${toId}'`);
+      showExplanation(`Edge '${fromId}' ➜ '${toId}' added`);
+    }
+
+    function addNode() {
+      const id = document.getElementById('nodeId').value.trim();
+      const x = parseInt(document.getElementById('xPos').value);
+      const y = parseInt(document.getElementById('yPos').value);
+      if (id && !isNaN(x) && !isNaN(y)) {
+        createNode(id, x, y);
+        document.getElementById('nodeId').value = '';
+        document.getElementById('xPos').value = '';
+        document.getElementById('yPos').value = '';
+      } else {
+        log('⚠️ Invalid node input');
+        showExplanation('Please fill valid ID and coordinates');
+      }
+    }
+
+    function addEdge() {
+      const from = document.getElementById('fromNode').value.trim();
+      const to = document.getElementById('toNode').value.trim();
+      if (from && to) {
+        createEdge(from, to);
+        document.getElementById('fromNode').value = '';
+        document.getElementById('toNode').value = '';
+      } else {
+        log('⚠️ Invalid edge input');
+        showExplanation('Please enter both node IDs');
+      }
+    }
+
+    function clearGraph() {
+      container.innerHTML = '';
+      for (const key in nodes) delete nodes[key];
+      edges.length = 0;
+      log('🧹 Graph cleared.');
+      showExplanation('Graph reset!');
+    }
+  </script>
+</body>
+</html>

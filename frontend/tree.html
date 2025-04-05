@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Visualization</title>
+    <style>
+        :root {
+            --primary-bg: #0a192f;
+            --secondary-bg: #172a45;
+            --accent-blue: #64ffda;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --node-color: #1e90ff;
+            --highlight-color: #64ffda;
+            --error-color: #ff6b6b;
+            --success-color: #4ecdc4;
+            --border-color: #303f60;
+        }
+        
+        body {
+            font-family: 'Fira Code', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .controls {
+            background-color: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        input, button, select {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        input {
+            width: 120px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+        }
+        
+        button {
+            background-color: var(--node-color);
+            color: var(--primary-bg);
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        #search-btn {
+            background-color: var(--success-color);
+            color: var(--primary-bg);
+        }
+        
+        #delete-btn {
+            background-color: var(--error-color);
+            color: var(--primary-bg);
+        }
+        
+        #clear-btn {
+            background-color: var(--text-secondary);
+            color: var(--primary-bg);
+        }
+        
+        .tree-container {
+            background-color: var(--secondary-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            min-height: 400px;
+            position: relative;
+            overflow: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .node {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--node-color);
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 2;
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .node.highlight {
+            background-color: var(--highlight-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+            color: var(--primary-bg);
+        }
+        
+        .node.found {
+            background-color: var(--success-color);
+            animation: pulse 0.5s;
+        }
+        
+        .node.exists {
+            background-color: var(--error-color);
+            animation: shake 0.5s;
+        }
+        
+        .edge {
+            position: absolute;
+            height: 2px;
+            background-color: var(--text-secondary);
+            transform-origin: 0 0;
+            z-index: 1;
+            opacity: 0.7;
+        }
+        
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        .log-entry::before {
+            content: "> ";
+            color: var(--accent-blue);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Binary Search Tree Visualization</h1>
+    
+    <div class="controls">
+        <input type="number" id="value-input" placeholder="Enter value">
+        <button id="insert-btn">Insert</button>
+        <button id="delete-btn">Delete</button>
+        <button id="search-btn">Search</button>
+        <select id="traversal-select">
+            <option value="inorder">Inorder</option>
+            <option value="preorder">Preorder</option>
+            <option value="postorder">Postorder</option>
+        </select>
+        <button id="traversal-btn">Traverse</button>
+        <button id="clear-btn">Clear All</button>
+    </div>
+    
+    <div class="tree-container" id="tree-container"></div>
+    
+    <div class="log" id="log"></div>
+    
+    <script>
+        class TreeNode {
+            constructor(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.count = 1;
+                this.x = 0;
+                this.y = 0;
+            }
+        }
+
+        class BinarySearchTree {
+            constructor() {
+                this.root = null;
+                this.logElement = document.getElementById('log');
+                this.treeContainer = document.getElementById('tree-container');
+                this.nodeSize = 50;
+                this.levelHeight = 80;
+                this.initialX = this.treeContainer.offsetWidth / 2;
+            }
+            
+            log(message) {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.textContent = message;
+                this.logElement.appendChild(entry);
+                this.logElement.scrollTop = this.logElement.scrollHeight;
+            }
+            
+            clearLog() {
+                this.logElement.innerHTML = '';
+            }
+            
+            insert(value) {
+                this.clearLog();
+                this.log(`Inserting ${value}...`);
+                
+                const newNode = new TreeNode(value);
+                
+                if (!this.root) {
+                    this.root = newNode;
+                    this.log(`Inserted ${value} as root.`);
+                    this.visualize();
+                    return;
+                }
+                
+                let current = this.root;
+                let inserted = false;
+                
+                while (!inserted) {
+                    if (value === current.value) {
+                        current.count++;
+                        this.log(`Duplicate value ${value} found. Count increased to ${current.count}.`);
+                        inserted = true;
+                    } else if (value < current.value) {
+                        this.log(`Comparing ${value} < ${current.value}: Going left`);
+                        if (!current.left) {
+                            current.left = newNode;
+                            this.log(`Inserted ${value} to the left of ${current.value}`);
+                            inserted = true;
+                        } else {
+                            current = current.left;
+                        }
+                    } else {
+                        this.log(`Comparing ${value} > ${current.value}: Going right`);
+                        if (!current.right) {
+                            current.right = newNode;
+                            this.log(`Inserted ${value} to the right of ${current.value}`);
+                            inserted = true;
+                        } else {
+                            current = current.right;
+                        }
+                    }
+                }
+                
+                this.visualize();
+                this.highlightNode(value);
+            }
+            
+            delete(value) {
+                this.clearLog();
+                this.log(`Deleting ${value}...`);
+                this.root = this._deleteNode(this.root, value);
+                this.visualize();
+            }
+            
+            _deleteNode(node, value) {
+                if (!node) {
+                    this.log(`Value ${value} not found in tree.`);
+                    return null;
+                }
+                
+                if (value < node.value) {
+                    this.log(`Comparing ${value} < ${node.value}: Going left`);
+                    node.left = this._deleteNode(node.left, value);
+                    return node;
+                } else if (value > node.value) {
+                    this.log(`Comparing ${value} > ${node.value}: Going right`);
+                    node.right = this._deleteNode(node.right, value);
+                    return node;
+                } else {
+                    // Found node to delete
+                    if (node.count > 1) {
+                        node.count--;
+                        this.log(`Duplicate value ${value} found. Count decreased to ${node.count}.`);
+                        return node;
+                    }
+                    
+                    this.log(`Deleting node with value ${value}`);
+                    
+                    // Case 1: No children
+                    if (!node.left && !node.right) {
+                        return null;
+                    }
+                    
+                    // Case 2: One child
+                    if (!node.left) {
+                        return node.right;
+                    }
+                    if (!node.right) {
+                        return node.left;
+                    }
+                    
+                    // Case 3: Two children
+                    const minRight = this._findMin(node.right);
+                    node.value = minRight.value;
+                    node.count = minRight.count;
+                    this.log(`Replacing with minimum value ${minRight.value} from right subtree`);
+                    node.right = this._deleteNode(node.right, minRight.value);
+                    return node;
+                }
+            }
+            
+            _findMin(node) {
+                while (node.left) {
+                    node = node.left;
+                }
+                return node;
+            }
+            
+            search(value) {
+                this.clearLog();
+                this.log(`Searching for ${value}...`);
+                
+                let current = this.root;
+                let found = false;
+                
+                while (current && !found) {
+                    this.log(`Comparing ${value} with ${current.value}`);
+                    
+                    if (value === current.value) {
+                        found = true;
+                        this.log(`Found ${value} in the tree.`);
+                    } else if (value < current.value) {
+                        this.log(`${value} < ${current.value}: Going left`);
+                        current = current.left;
+                    } else {
+                        this.log(`${value} > ${current.value}: Going right`);
+                        current = current.right;
+                    }
+                }
+                
+                if (!found) {
+                    this.log(`${value} not found in the tree.`);
+                }
+                
+                this.visualize();
+                this.highlightNode(value, found);
+            }
+            
+            traverse(order) {
+                this.clearLog();
+                this.log(`${order.charAt(0).toUpperCase() + order.slice(1)}order traversal:`);
+                
+                const result = [];
+                
+                switch (order) {
+                    case 'inorder':
+                        this._inorder(this.root, result);
+                        break;
+                    case 'preorder':
+                        this._preorder(this.root, result);
+                        break;
+                    case 'postorder':
+                        this._postorder(this.root, result);
+                        break;
+                }
+                
+                this.log(result.join(' → '));
+                this.visualizeTraversal(result);
+            }
+            
+            _inorder(node, result) {
+                if (node) {
+                    this._inorder(node.left, result);
+                    for (let i = 0; i < node.count; i++) {
+                        result.push(node.value);
+                    }
+                    this._inorder(node.right, result);
+                }
+            }
+            
+            _preorder(node, result) {
+                if (node) {
+                    for (let i = 0; i < node.count; i++) {
+                        result.push(node.value);
+                    }
+                    this._preorder(node.left, result);
+                    this._preorder(node.right, result);
+                }
+            }
+            
+            _postorder(node, result) {
+                if (node) {
+                    this._postorder(node.left, result);
+                    this._postorder(node.right, result);
+                    for (let i = 0; i < node.count; i++) {
+                        result.push(node.value);
+                    }
+                }
+            }
+            
+            visualize() {
+                this.treeContainer.innerHTML = '';
+                
+                if (!this.root) {
+                    this.log("Tree is empty.");
+                    return;
+                }
+                
+                // Calculate positions
+                this._calculatePositions(this.root, this.initialX, 30, this.initialX / 2);
+                
+                // Draw edges first (so nodes appear on top)
+                this._drawEdges(this.root);
+                
+                // Draw nodes
+                this._drawNodes(this.root);
+            }
+            
+            _calculatePositions(node, x, y, offset) {
+                if (!node) return;
+                
+                node.x = x;
+                node.y = y;
+                
+                if (node.left) {
+                    this._calculatePositions(node.left, x - offset, y + this.levelHeight, offset / 2);
+                }
+                if (node.right) {
+                    this._calculatePositions(node.right, x + offset, y + this.levelHeight, offset / 2);
+                }
+            }
+            
+            _drawEdges(node) {
+                if (!node) return;
+                
+                if (node.left) {
+                    const edge = document.createElement('div');
+                    edge.className = 'edge';
+                    
+                    const length = Math.sqrt(
+                        Math.pow(node.x - node.left.x, 2) + 
+                        Math.pow(node.y - node.left.y, 2)
+                    );
+                    
+                    const angle = Math.atan2(
+                        node.left.y - node.y,
+                        node.left.x - node.x
+                    );
+                    
+                    edge.style.width = `${length}px`;
+                    edge.style.left = `${node.x + this.nodeSize/2}px`;
+                    edge.style.top = `${node.y + this.nodeSize/2}px`;
+                    edge.style.transform = `rotate(${angle}rad)`;
+                    
+                    this.treeContainer.appendChild(edge);
+                    this._drawEdges(node.left);
+                }
+                
+                if (node.right) {
+                    const edge = document.createElement('div');
+                    edge.className = 'edge';
+                    
+                    const length = Math.sqrt(
+                        Math.pow(node.x - node.right.x, 2) + 
+                        Math.pow(node.y - node.right.y, 2)
+                    );
+                    
+                    const angle = Math.atan2(
+                        node.right.y - node.y,
+                        node.right.x - node.x
+                    );
+                    
+                    edge.style.width = `${length}px`;
+                    edge.style.left = `${node.x + this.nodeSize/2}px`;
+                    edge.style.top = `${node.y + this.nodeSize/2}px`;
+                    edge.style.transform = `rotate(${angle}rad)`;
+                    
+                    this.treeContainer.appendChild(edge);
+                    this._drawEdges(node.right);
+                }
+            }
+            
+            _drawNodes(node) {
+                if (!node) return;
+                
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.textContent = node.count > 1 ? `${node.value}(${node.count})` : node.value;
+                nodeElement.style.left = `${node.x}px`;
+                nodeElement.style.top = `${node.y}px`;
+                nodeElement.id = `node-${node.value}`;
+                
+                this.treeContainer.appendChild(nodeElement);
+                
+                this._drawNodes(node.left);
+                this._drawNodes(node.right);
+            }
+            
+            highlightNode(value, found = true) {
+                const nodeElement = document.getElementById(`node-${value}`);
+                if (nodeElement) {
+                    nodeElement.classList.add(found ? 'found' : 'exists');
+                    setTimeout(() => {
+                        nodeElement.classList.remove('found', 'exists');
+                    }, 2000);
+                }
+            }
+            
+            visualizeTraversal(values) {
+                let i = 0;
+                const highlightNext = () => {
+                    if (i >= values.length) return;
+                    
+                    // Remove highlight from all nodes
+                    document.querySelectorAll('.node').forEach(node => {
+                        node.classList.remove('highlight');
+                    });
+                    
+                    // Highlight current node
+                    const value = values[i];
+                    const nodeElement = document.getElementById(`node-${value}`);
+                    if (nodeElement) {
+                        nodeElement.classList.add('highlight');
+                    }
+                    
+                    i++;
+                    if (i < values.length) {
+                        setTimeout(highlightNext, 800);
+                    } else {
+                        // Remove highlight after last node
+                        setTimeout(() => {
+                            document.querySelectorAll('.node').forEach(node => {
+                                node.classList.remove('highlight');
+                            });
+                        }, 800);
+                    }
+                };
+                
+                highlightNext();
+            }
+        }
+
+        // Initialize BST and event listeners
+        const bst = new BinarySearchTree();
+        
+        document.getElementById('insert-btn').addEventListener('click', () => {
+            const value = parseInt(document.getElementById('value-input').value);
+            if (!isNaN(value)) {
+                bst.insert(value);
+                document.getElementById('value-input').value = '';
+                document.getElementById('value-input').focus();
+            }
+        });
+        
+        document.getElementById('delete-btn').addEventListener('click', () => {
+            const value = parseInt(document.getElementById('value-input').value);
+            if (!isNaN(value)) {
+                bst.delete(value);
+                document.getElementById('value-input').value = '';
+                document.getElementById('value-input').focus();
+            }
+        });
+        
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const value = parseInt(document.getElementById('value-input').value);
+            if (!isNaN(value)) {
+                bst.search(value);
+                document.getElementById('value-input').value = '';
+                document.getElementById('value-input').focus();
+            }
+        });
+        
+        document.getElementById('traversal-btn').addEventListener('click', () => {
+            const order = document.getElementById('traversal-select').value;
+            bst.traverse(order);
+            document.getElementById('value-input').focus();
+        });
+        
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            bst.root = null;
+            bst.clearLog();
+            bst.visualize();
+            document.getElementById('value-input').focus();
+        });
+        
+        // Handle Enter key
+        document.getElementById('value-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const value = parseInt(document.getElementById('value-input').value);
+                if (!isNaN(value)) {
+                    bst.insert(value);
+                    document.getElementById('value-input').value = '';
+                }
+            }
+        });
+        
+        // Focus input on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('value-input').focus();
+        });
+    </script>
+</body>
+</html>
