@@ -12,7 +12,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
 
   <style>
-    /* General Layout */
     html, body {
       margin: 0;
       padding: 0;
@@ -20,7 +19,6 @@
       font-family: 'Segoe UI', sans-serif;
       background-color: #0D1117;
       color: #C9D1D9;
-      overflow: hidden;
     }
 
     nav {
@@ -53,7 +51,7 @@
       font-size: 16px;
     }
 
-    nav ul li .active {
+    nav ul li a.active {
       color: #58A6FF;
       font-weight: bold;
     }
@@ -63,9 +61,7 @@
       height: calc(100vh - 60px);
     }
 
-    /* Code Box + Explanation Split Panel */
-    .editor-container,
-    .output-container {
+    .editor-container, .output-container {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
@@ -88,21 +84,19 @@
       margin-bottom: 10px;
     }
 
-    /* CodeMirror Editor Styling */
     .CodeMirror {
       flex-grow: 1;
-      min-height: 100%;
       font-size: 16px;
       border-radius: 5px;
       border: 1px solid #30363D;
-      background-color: #9eb1bcbd;
+      background-color: #c3e5faf2;
     }
 
     button {
       background-color: #238636;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 10px;
       margin-top: 15px;
       cursor: pointer;
       font-size: 16px;
@@ -144,60 +138,67 @@
 
   <!-- Navigation -->
   <nav>
-    <h1>CodeQuest</h1>
+    <h1>✨ CodeQuest</h1>
     <ul>
-      <li><a href="#">Home</a></li>
-      <li><a href="#" class="active">Editor</a></li>
-      <li><a href="#">Challenges</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="code_editor.html" class="active">Editor</a></li>
+      <li><a href="code_challenges.html">Challenges</a></li>
       <li><a href="#">Leaderboard</a></li>
-      <li><a href="#">Visualizer</a></li>
+      <li><a href="visulizer.html">Visualizer</a></li>
     </ul>
   </nav>
 
-  <!-- Split Panel: Editor + Explanation -->
+  <!-- Split Panel -->
   <div class="main">
-    <!-- Code Editor -->
+    <!-- Editor Section -->
     <div class="editor-container">
       <h2>Code Editor</h2>
-      <textarea id="code"></textarea>
-      <button id="run-btn">Run Code</button>
+      <textarea id="code" name="code"></textarea>
+      <button id="run-btn">Explain Code</button>
     </div>
 
-    <!-- AI Explanation -->
+    <!-- Output Section -->
     <div class="output-container">
       <h2>AI Explanation</h2>
       <div id="explanation">Your explanation will appear here...</div>
     </div>
   </div>
 
-  <!-- JavaScript to hook CodeMirror and send code -->
+  <!-- JS Logic -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      let editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        mode: "python",
-        theme: "darcula",
+      const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
+        mode: "python",
+        theme: "default",
         autoCloseBrackets: true
       });
 
       editor.setSize(null, "100%");
 
-      document.getElementById("run-btn").addEventListener("click", function () {
+      document.getElementById("run-btn").addEventListener("click", async function () {
         const code = editor.getValue();
+        const explanationBox = document.getElementById("explanation");
+        explanationBox.textContent = "Loading...";
 
-        fetch("/explain", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: code })
-        })
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("explanation").innerText = data.explanation;
-        })
-        .catch(err => {
-          document.getElementById("explanation").innerText = "Error fetching explanation.";
+        try {
+          const response = await fetch("http://127.0.0.1:5000/explain", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code })
+          });
+
+          const data = await response.json();
+          if (response.ok && data.explanation) {
+            explanationBox.textContent = data.explanation;
+          } else {
+            explanationBox.textContent = "Error fetching explanation.";
+            console.error("Error:", data);
+          }
+        } catch (err) {
+          explanationBox.textContent = "Error fetching explanation.";
           console.error(err);
-        });
+        }
       });
     });
   </script>

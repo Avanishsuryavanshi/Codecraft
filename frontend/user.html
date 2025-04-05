@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeQuest - Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .phrase {
+      font-size: 2.2rem;
+      color: #38bdf8;
+      font-weight: 700;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+      margin-bottom: 40px;
+      animation: glow 1.5s infinite alternate;
+      text-align: center;
+    }
+
+    @keyframes glow {
+      0% { text-shadow: 0 0 15px rgba(56, 189, 248, 0.8); }
+      100% { text-shadow: 0 0 25px rgba(56, 189, 248, 1); }
+    }
+
+    .box {
+      width: 450px;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      padding: 2rem;
+      text-align: center;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    h2 {
+      color: #38bdf8;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #1e293b;
+      color: #f1f5f9;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #38bdf8;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phrase">✨ "CodeQuest: Where Learning Meets Adventure!" 🚀</div>
+
+  <div class="box">
+    <h2>Register</h2>
+    <input type="text" id="nameField" placeholder="Name" />
+    <input type="email" id="email" placeholder="Gmail" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="handleSubmit()">Register</button>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://xgxtikwsbjlkfzccuhow.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhneHRpa3dzYmpsa2Z6Y2N1aG93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDU1OTAsImV4cCI6MjA1OTQyMTU5MH0.I-DLBh-aNFnOCM_Pu-3aIGl5P-v64Vg2nU72WW9mA84"
+    );
+
+    async function handleSubmit() {
+      const name = document.getElementById("nameField").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!name || !email || !password) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      console.log("Attempting registration for", email);
+
+      const { data, error } = await supabase
+        .from("coder_data")
+        .insert([
+          {
+            username: email,
+            name: name,
+            password: password,
+            xp: 0
+          }
+        ]);
+
+      if (error) {
+        alert("Registration failed: " + error.message);
+        console.error(error);
+      } else {
+        alert(`Registered successfully as ${name}!`);
+        console.log("Data:", data);
+        // Optionally redirect
+      }
+    }
+  </script>
+
+</body>
+</html>
