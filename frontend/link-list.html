@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Linked List Visualizer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 20px;
+      font-size: 2rem;
+      color: #00ffe1;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .controls input, .controls button {
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+    }
+
+    .controls input {
+      width: 120px;
+    }
+
+    .controls button {
+      background-color: #00ffe1;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .controls button:hover {
+      background-color: #00c1a3;
+    }
+
+    .linked-list {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 150px;
+    }
+
+    .node {
+      display: flex;
+      align-items: center;
+      background-color: #292947;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .node .data {
+      padding: 10px 15px;
+      background: #00ffe1;
+      color: #000;
+      font-weight: bold;
+      border-radius: 6px 0 0 6px;
+    }
+
+    .node .arrow {
+      width: 30px;
+      height: 2px;
+      background: #fff;
+      margin-left: 10px;
+      position: relative;
+    }
+
+    .node .arrow::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -5px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid #fff;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+    }
+
+    .pointer-label {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff4d4d;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Linked List Visualizer</h1>
+
+  <div class="controls">
+    <input type="number" id="inputValue" placeholder="Value" />
+    <button onclick="insertAtEnd()">Insert</button>
+    <button onclick="deleteFromFront()">Delete Head</button>
+    <button onclick="searchValue()">Search</button>
+    <button onclick="resetList()">Reset</button>
+  </div>
+
+  <div class="linked-list" id="linkedList"></div>
+
+  <script>
+    let list = [];
+
+    const linkedListContainer = document.getElementById('linkedList');
+
+    function renderList(highlightIndex = -1) {
+      linkedListContainer.innerHTML = '';
+      list.forEach((val, index) => {
+        const node = document.createElement('div');
+        node.className = 'node';
+
+        const data = document.createElement('div');
+        data.className = 'data';
+        data.textContent = val;
+
+        if (index === 0) {
+          const label = document.createElement('div');
+          label.className = 'pointer-label';
+          label.textContent = 'Head';
+          node.appendChild(label);
+        }
+
+        if (index === list.length - 1) {
+          const label = document.createElement('div');
+          label.className = 'pointer-label';
+          label.textContent = 'Tail';
+          label.style.background = '#00c1a3';
+          node.appendChild(label);
+        }
+
+        if (index === highlightIndex) {
+          node.style.transform = 'scale(1.1)';
+          node.style.border = '2px solid yellow';
+        }
+
+        node.appendChild(data);
+
+        if (index < list.length - 1) {
+          const arrow = document.createElement('div');
+          arrow.className = 'arrow';
+          node.appendChild(arrow);
+        }
+
+        linkedListContainer.appendChild(node);
+      });
+    }
+
+    function insertAtEnd() {
+      const val = document.getElementById('inputValue').value;
+      if (val === '') return alert('Please enter a value!');
+      list.push(val);
+      renderList();
+      document.getElementById('inputValue').value = '';
+    }
+
+    function deleteFromFront() {
+      if (list.length === 0) return alert('List is empty!');
+      list.shift();
+      renderList();
+    }
+
+    function searchValue() {
+      const val = document.getElementById('inputValue').value;
+      if (val === '') return alert('Enter value to search');
+      let index = list.indexOf(val);
+      if (index === -1) {
+        alert('Value not found!');
+        return;
+      }
+      renderList(index);
+    }
+
+    function resetList() {
+      list = [];
+      renderList();
+    }
+
+    // Initial empty render
+    renderList();
+  </script>
+
+  <!-- QUIZ SECTION -->
+  <div style="margin: 40px auto; max-width: 600px; background: #292947; padding: 20px; border-radius: 12px; box-shadow: 0 6px 14px rgba(0,0,0,0.3);">
+    <h2 style="color: #00ffe1; font-size: 1.5rem; margin-bottom: 12px; text-align: center;">🧠 Quick Quiz</h2>
+    <p id="quiz-question" style="color: #e0e0e0; font-size: 1rem; margin-bottom: 10px;"></p>
+    <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    <p id="quiz-feedback" style="margin-top: 12px; font-weight: bold;"></p>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "What is the time complexity to insert at the beginning of a singly linked list?",
+        options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
+        answer: "O(1)"
+      },
+      {
+        question: "What does the 'next' pointer in the last node point to?",
+        options: ["Head", "Tail", "Null", "Itself"],
+        answer: "Null"
+      },
+      {
+        question: "Which operation is expensive in a singly linked list?",
+        options: ["Insert at front", "Delete head", "Access by index", "Insert at end"],
+        answer: "Access by index"
+      },
+      {
+        question: "To delete a node in the middle, what do you need?",
+        options: ["Index only", "Previous node", "Tail node", "Any node"],
+        answer: "Previous node"
+      }
+    ];
+
+    function renderQuiz() {
+      const quiz = quizData[Math.floor(Math.random() * quizData.length)];
+      const questionEl = document.getElementById("quiz-question");
+      const optionsEl = document.getElementById("quiz-options");
+      const feedbackEl = document.getElementById("quiz-feedback");
+
+      questionEl.textContent = quiz.question;
+      optionsEl.innerHTML = '';
+      feedbackEl.textContent = '';
+
+      quiz.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.style.padding = '10px';
+        btn.style.borderRadius = '8px';
+        btn.style.background = '#00ffe1';
+        btn.style.color = '#000';
+        btn.style.fontWeight = 'bold';
+        btn.style.cursor = 'pointer';
+        btn.style.border = 'none';
+        btn.style.transition = 'background 0.2s ease';
+        btn.onmouseover = () => btn.style.background = '#00c1a3';
+        btn.onmouseout = () => btn.style.background = '#00ffe1';
+
+        btn.onclick = () => {
+          if (option === quiz.answer) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.style.color = "#00ff88";
+          } else {
+            feedbackEl.textContent = "❌ Wrong answer!";
+            feedbackEl.style.color = "#ff4d4d";
+          }
+        };
+
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Sorting Visualizer</title>
+  <style>
+    :root {
+      --bg-light: #f9f9fc;
+      --primary-color: #1e293b;
+      --accent-color: #38bdf8;
+      --highlight-compare: #f59e0b;
+      --highlight-swap: #e11d48;
+      --text-light: #1e293b;
+      --text-dark: #f0f0f0;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--primary-color);
+      color: var(--text-dark);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--text-light);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      background-color: var(--primary-color);
+      color: white;
+    }
+    header button {
+      background-color: var(--accent-color);
+      color: var(--primary-color);
+      padding: 10px 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    input, select, button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      margin: 10px;
+      border: none;
+    }
+    .square {
+      width: 50px;
+      height: 50px;
+      background-color: var(--accent-color);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      border-radius: 5px;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    #arrayContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 30px;
+      margin-bottom: 40px;
+    }
+    .comparing { background-color: var(--highlight-compare); transform: scale(1.1); }
+    .swapping { background-color: var(--highlight-swap); transform: scale(1.2); }
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    .bounce { animation: bounce 0.5s ease; }
+    #description {
+      margin: 30px 0 20px;
+      font-weight: bold;
+      font-size: 18px;
+      color: var(--accent-color);
+    }
+    #quizSection {
+      margin-top: 60px;
+    }
+    .quiz-question {
+      font-weight: bold;
+      margin: 20px 0 15px;
+      font-size: 18px;
+    }
+    .quiz-feedback {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+    .emoji {
+      font-size: 24px;
+      display: inline-block;
+      animation: bounce 0.5s ease;
+    }
+  </style>
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Interactive Sorting Visualizer</h1>
+    <button onclick="toggleMode()">Toggle Mode</button>
+  </header>
+  <div class="container">
+    <input type="text" id="arrayInput" placeholder="Enter numbers, e.g. 5,3,1">
+    <select id="algoSelect">
+      <option value="bubble">Bubble Sort</option>
+      <option value="insertion">Insertion Sort</option>
+      <option value="selection">Selection Sort</option>
+      <option value="quick">Quick Sort</option>
+      <option value="merge">Merge Sort</option>
+    </select>
+    <button onclick="setArray()">Set Array</button>
+    <button onclick="startSorting()">Start Sorting</button>
+    <button onclick="resetArray()">Reset</button>
+    <br><br>
+    <label>Speed (ms):</label>
+    <input type="range" id="speedRange" min="100" max="2000" value="1000">
+    <span id="speedValue">1000</span>
+    <div id="arrayContainer"></div>
+    <div id="description"></div>
+
+    <!-- Quiz Section -->
+    <div id="quizSection">
+      <h2>Sorting Quiz 🧠</h2>
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button id="nextQuestionBtn" style="display:none;" onclick="loadNextQuizQuestion()">Next Question</button>
+    </div>
+  </div>
+
+  <script>
+    let arr = [], speed = 1000;
+    const arrayContainer = document.getElementById("arrayContainer");
+    const descriptionDiv = document.getElementById("description");
+
+    document.getElementById("speedRange").oninput = (e) => {
+      speed = e.target.value;
+      document.getElementById("speedValue").innerText = speed;
+    };
+
+    function toggleMode() {
+      document.body.classList.toggle("light-mode");
+    }
+
+    function setArray() {
+      const input = document.getElementById("arrayInput").value.split(',').map(n => parseInt(n));
+      arr = input.filter(n => !isNaN(n));
+      renderArray();
+    }
+
+    function renderArray() {
+      arrayContainer.innerHTML = '';
+      arr.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "square";
+        div.innerText = n;
+        arrayContainer.appendChild(div);
+      });
+    }
+
+    function resetArray() {
+      arr = [];
+      arrayContainer.innerHTML = '';
+      descriptionDiv.innerText = '';
+    }
+
+    async function sleep(ms) {
+      return new Promise(res => setTimeout(res, ms));
+    }
+
+    async function startSorting() {
+      const algo = document.getElementById("algoSelect").value;
+      const squares = document.getElementsByClassName("square");
+
+      async function show(i, j, action) {
+        squares[i].classList.add(action);
+        if (j !== null) squares[j].classList.add(action);
+        descriptionDiv.innerText = action === 'comparing' ? `Comparing ${arr[i]} & ${arr[j]}` :
+                                   action === 'swapping' ? `Swapping ${arr[i]} & ${arr[j]}` : '';
+        await sleep(speed);
+        if (j !== null) squares[j].classList.remove(action);
+        squares[i].classList.remove(action);
+        descriptionDiv.innerText = '';
+      }
+
+      if (algo === 'bubble') {
+        for (let i = 0; i < arr.length - 1; i++) {
+          for (let j = 0; j < arr.length - i - 1; j++) {
+            await show(j, j + 1, 'comparing');
+            if (arr[j] > arr[j + 1]) {
+              await show(j, j + 1, 'swapping');
+              [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+              squares[j].innerText = arr[j];
+              squares[j + 1].innerText = arr[j + 1];
+            }
+          }
+        }
+      }
+
+      else if (algo === 'insertion') {
+        for (let i = 1; i < arr.length; i++) {
+          let key = arr[i], j = i - 1;
+          while (j >= 0 && arr[j] > key) {
+            await show(j, j + 1, 'swapping');
+            arr[j + 1] = arr[j];
+            squares[j + 1].innerText = arr[j + 1];
+            j--;
+          }
+          arr[j + 1] = key;
+          squares[j + 1].innerText = key;
+        }
+      }
+
+      else if (algo === 'selection') {
+        for (let i = 0; i < arr.length - 1; i++) {
+          let min = i;
+          for (let j = i + 1; j < arr.length; j++) {
+            await show(min, j, 'comparing');
+            if (arr[j] < arr[min]) min = j;
+          }
+          if (min !== i) {
+            await show(i, min, 'swapping');
+            [arr[i], arr[min]] = [arr[min], arr[i]];
+            squares[i].innerText = arr[i];
+            squares[min].innerText = arr[min];
+          }
+        }
+      }
+
+      else if (algo === 'quick') {
+        async function quick(low, high) {
+          if (low < high) {
+            let pivot = arr[high], i = low - 1;
+            for (let j = low; j < high; j++) {
+              await show(j, high, 'comparing');
+              if (arr[j] < pivot) {
+                i++;
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+                squares[i].innerText = arr[i];
+                squares[j].innerText = arr[j];
+              }
+            }
+            [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+            squares[i + 1].innerText = arr[i + 1];
+            squares[high].innerText = arr[high];
+            await quick(low, i);
+            await quick(i + 2, high);
+          }
+        }
+        await quick(0, arr.length - 1);
+      }
+
+      else if (algo === 'merge') {
+        async function merge(l, r) {
+          if (l >= r) return;
+          const m = Math.floor((l + r) / 2);
+          await merge(l, m);
+          await merge(m + 1, r);
+          let left = arr.slice(l, m + 1), right = arr.slice(m + 1, r + 1);
+          let i = 0, j = 0, k = l;
+          while (i < left.length && j < right.length) {
+            await show(k, null, 'comparing');
+            if (left[i] <= right[j]) {
+              arr[k] = left[i++];
+            } else {
+              arr[k] = right[j++];
+            }
+            squares[k++].innerText = arr[k - 1];
+          }
+          while (i < left.length) arr[k] = left[i++], squares[k++].innerText = arr[k - 1];
+          while (j < right.length) arr[k] = right[j++], squares[k++].innerText = arr[k - 1];
+        }
+        await merge(0, arr.length - 1);
+      }
+    }
+
+    // Quiz Section
+    const quizQuestions = [
+      {
+        question: "Which sort uses adjacent swaps?",
+        options: ["Bubble Sort", "Quick Sort", "Merge Sort", "Selection Sort"],
+        answer: "Bubble Sort"
+      },
+      {
+        question: "Which algorithm uses divide and conquer?",
+        options: ["Insertion Sort", "Merge Sort", "Selection Sort", "Bubble Sort"],
+        answer: "Merge Sort"
+      },
+      {
+        question: "Which uses a pivot for partitioning?",
+        options: ["Quick Sort", "Selection Sort", "Merge Sort", "Insertion Sort"],
+        answer: "Quick Sort"
+      }
+    ];
+    let currentIndex = 0;
+
+    function loadNextQuizQuestion() {
+      const q = quizQuestions[currentIndex % quizQuestions.length];
+      document.getElementById('quizQuestion').innerText = q.question;
+      const quizOptions = document.getElementById('quizOptions');
+      const feedback = document.getElementById('quizFeedback');
+      const nextBtn = document.getElementById('nextQuestionBtn');
+      quizOptions.innerHTML = '';
+      feedback.innerText = '';
+      nextBtn.style.display = 'none';
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => {
+          feedback.innerHTML = opt === q.answer
+            ? "<span class='emoji'>🎉</span> Correct!"
+            : "<span class='emoji'>😢</span> Incorrect!";
+          nextBtn.style.display = 'block';
+        };
+        quizOptions.appendChild(btn);
+      });
+      currentIndex++;
+    }
+
+    window.onload = loadNextQuizQuestion;
+  </script>
+</body>
+</html>

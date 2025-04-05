@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Algorithm Visualizer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #38bdf8;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .controls {
+      background-color: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .controls input,
+    .controls select,
+    .controls button {
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 1rem;
+      border: none;
+      outline: none;
+    }
+
+    .controls input,
+    .controls select {
+      background-color: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+
+    .controls button {
+      background-color: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .controls button:hover {
+      background-color: #0ea5e9;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #cbd5e1;
+    }
+
+    .visualization {
+      background-color: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 800px;
+      height: 300px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .bar {
+      background-color: #38bdf8;
+      width: 30px;
+      border-radius: 6px 6px 0 0;
+      color: #0f172a;
+      font-size: 0.9rem;
+      text-align: center;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      transition: all 0.4s ease;
+    }
+
+    .comparing {
+      background-color: #facc15 !important;
+      transform: scaleY(1.1);
+    }
+
+    .found {
+      background-color: #22c55e !important;
+      animation: pop 0.6s ease-in-out;
+    }
+
+    @keyframes pop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    @media (max-width: 600px) {
+      .bar {
+        width: 20px;
+      }
+
+      .controls {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 Search Algorithm Visualizer</h1>
+
+  <div class="controls">
+    <input type="text" id="array-input" placeholder="Enter numbers (e.g., 5,3,8,4,2)" value="5,3,8,4,2">
+    <select id="algorithm-select">
+      <option value="linear">Linear Search</option>
+      <option value="binary">Binary Search</option>
+    </select>
+    <input type="text" id="search-input" placeholder="Search for a number...">
+    <button id="search-btn">Search</button>
+    <button id="reset-btn">Reset</button>
+
+    <div class="slider-container">
+      <label for="speed-slider">Speed:</label>
+      <input type="range" id="speed-slider" min="1" max="10" value="5">
+    </div>
+  </div>
+
+  <div class="visualization" id="visualization"></div>
+
+  <script>
+    const arrayInput = document.getElementById('array-input');
+    const algorithmSelect = document.getElementById('algorithm-select');
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const speedSlider = document.getElementById('speed-slider');
+    const visualization = document.getElementById('visualization');
+
+    let array = [];
+    let bars = [];
+    let isSearching = false;
+    let speed = 500;
+
+    function init() {
+      parseArray();
+      renderBars();
+      searchBtn.addEventListener('click', startSearching);
+      resetBtn.addEventListener('click', reset);
+      speedSlider.addEventListener('input', updateSpeed);
+      arrayInput.addEventListener('change', parseArray);
+    }
+
+    function parseArray() {
+      array = arrayInput.value.split(',').map(Number).filter(n => !isNaN(n));
+      if (array.length === 0) array = [5, 3, 8, 4, 2];
+      renderBars();
+    }
+
+    function renderBars() {
+      visualization.innerHTML = '';
+      bars = [];
+      const maxValue = Math.max(...array);
+      const containerHeight = visualization.clientHeight;
+
+      array.forEach((value, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = `${(value / maxValue) * (containerHeight - 30)}px`;
+        bar.textContent = value;
+        visualization.appendChild(bar);
+        bars.push(bar);
+      });
+    }
+
+    function updateSpeed() {
+      speed = 1100 - (speedSlider.value * 100);
+    }
+
+    function reset() {
+      isSearching = false;
+      parseArray();
+    }
+
+    async function highlightBar(index) {
+      bars[index].classList.add('comparing');
+      await new Promise(resolve => setTimeout(resolve, speed));
+      bars[index].classList.remove('comparing');
+    }
+
+    async function markFound(index) {
+      bars[index].classList.add('found');
+      await new Promise(resolve => setTimeout(resolve, speed * 2));
+      bars[index].classList.remove('found');
+    }
+
+    async function linearSearch(target) {
+      for (let i = 0; i < array.length && isSearching; i++) {
+        await highlightBar(i);
+        if (array[i] === target) {
+          await markFound(i);
+          isSearching = false;
+          return;
+        }
+      }
+      alert("Element not found.");
+      isSearching = false;
+    }
+
+    async function binarySearch(target) {
+      for (let i = 0; i < array.length - 1; i++) {
+        if (array[i] > array[i + 1]) {
+          alert("Array must be sorted for binary search!");
+          isSearching = false;
+          return;
+        }
+      }
+
+      let left = 0, right = array.length - 1;
+      while (left <= right && isSearching) {
+        const mid = Math.floor((left + right) / 2);
+        await highlightBar(mid);
+
+        if (array[mid] === target) {
+          await markFound(mid);
+          isSearching = false;
+          return;
+        } else if (array[mid] < target) {
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      alert("Element not found.");
+      isSearching = false;
+    }
+
+    function startSearching() {
+      if (isSearching) return;
+      isSearching = true;
+      bars.forEach(bar => bar.classList.remove('found', 'comparing'));
+
+      const target = parseInt(searchInput.value);
+      if (isNaN(target)) {
+        alert("Please enter a valid number to search for.");
+        isSearching = false;
+        return;
+      }
+
+      const algorithm = algorithmSelect.value;
+      if (algorithm === 'linear') {
+        linearSearch(target);
+      } else if (algorithm === 'binary') {
+        binarySearch(target);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
