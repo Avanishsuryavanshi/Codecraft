@@ -7,12 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    /* Styles same as before */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #0f172a;
@@ -24,7 +20,6 @@
       height: 100vh;
       overflow: hidden;
     }
-
     .phrase {
       font-size: 2.2rem;
       color: #38bdf8;
@@ -34,12 +29,10 @@
       animation: glow 1.5s infinite alternate;
       text-align: center;
     }
-
     @keyframes glow {
       0% { text-shadow: 0 0 15px rgba(56, 189, 248, 0.8); }
       100% { text-shadow: 0 0 25px rgba(56, 189, 248, 1); }
     }
-
     .box {
       width: 450px;
       background: rgba(15, 23, 42, 0.95);
@@ -49,18 +42,15 @@
       text-align: center;
       animation: float 3s ease-in-out infinite;
     }
-
     @keyframes float {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
-
     h2 {
       color: #38bdf8;
       margin-bottom: 20px;
       font-size: 1.8rem;
     }
-
     input {
       width: 100%;
       padding: 14px;
@@ -71,7 +61,6 @@
       background: #1e293b;
       color: #f1f5f9;
     }
-
     button {
       width: 100%;
       padding: 14px;
@@ -84,10 +73,18 @@
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.3s ease;
     }
-
     button:hover {
       transform: scale(1.05);
       box-shadow: 0 0 15px #38bdf8;
+    }
+    a {
+      color: #94a3b8;
+      margin-top: 1rem;
+      display: inline-block;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #f1f5f9;
     }
   </style>
 </head>
@@ -101,6 +98,7 @@
     <input type="email" id="email" placeholder="Gmail" required />
     <input type="password" id="password" placeholder="Password" required />
     <button onclick="handleSubmit()">Register</button>
+    <a href="loginn.html">Already have an account? Login here</a>
   </div>
 
   <script>
@@ -110,8 +108,8 @@
     );
 
     async function handleSubmit() {
-      const name = document.getElementById("nameField").value;
-      const email = document.getElementById("email").value;
+      const name = document.getElementById("nameField").value.trim();
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
 
       if (!name || !email || !password) {
@@ -119,27 +117,22 @@
         return;
       }
 
-      console.log("Attempting registration for", email);
-
-      const { data, error } = await supabase
-        .from("coder_data")
-        .insert([
-          {
-            username: email,
-            name: name,
-            password: password,
-            xp: 0
-          }
-        ]);
+      const { data, error } = await supabase.auth.signUp({ email, password });
 
       if (error) {
-        alert("Registration failed: " + error.message);
-        console.error(error);
-      } else {
-        alert(`Registered successfully as ${name}!`);
-        console.log("Data:", data);
-        // Optionally redirect
+        alert("Signup failed: " + error.message);
+        return;
       }
+
+      await supabase.from("coder_data").insert([
+        { username: email, name: name, password: password, xp: 0 }
+      ]);
+
+      localStorage.setItem("user", JSON.stringify({ name, email, password }));
+      console.log("User stored:", JSON.parse(localStorage.getItem("user")));
+
+      alert(`🎉 Registered successfully as ${name}! Redirecting...`);
+      window.location.href = "index.html";
     }
   </script>
 
