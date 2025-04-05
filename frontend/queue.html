@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Queue Operation Visualizer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .dark-mode {
+      background-color: #1e293b;
+      color: #f0f0f0;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: #1e293b;
+      color: white;
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background: #334155;
+      color: white;
+      cursor: pointer;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .controls input, .controls button {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #38bdf8;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0ea5e9;
+    }
+
+    .queue-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 120px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .box {
+      background: #fff;
+      border: 2px solid #38bdf8;
+      border-radius: 5px;
+      padding: 15px;
+      position: relative;
+      font-size: 18px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .box.enqueue-anim {
+      animation: slideIn 0.4s ease;
+    }
+
+    .box.dequeue-anim {
+      animation: fadeOut 0.3s ease forwards;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -30px;
+      background: #0ea5e9;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .pointer:last-child {
+      top: 60px;
+    }
+
+    .info {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .queue-stats {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-container {
+      margin-top: 30px;
+      padding: 15px;
+      background: #e0f2fe;
+      border-radius: 10px;
+    }
+
+    .quiz-container h3 {
+      margin-bottom: 10px;
+    }
+
+    .emoji {
+      font-size: 36px;
+      margin-top: 10px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .emoji.bounce {
+      animation: bounce 0.6s ease;
+    }
+
+    .step-box {
+      background: #cffafe;
+      border-left: 5px solid #0ea5e9;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+
+    @keyframes slideIn {
+      0% {
+        transform: translateY(-30px) scale(0.5);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎯 Queue Operation Visualizer</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</button>
+  </header>
+
+  <div class="container">
+    <div class="controls">
+      <input type="text" id="value" placeholder="Enter value" />
+      <button onclick="enqueue()">Enqueue</button>
+      <button onclick="dequeue()">Dequeue</button>
+      <button onclick="resetQueue()">Reset Queue</button>
+    </div>
+
+    <div class="queue-stats" id="stats">
+      Queue Size: 0 | Elements: []
+    </div>
+
+    <div class="step-box" id="steps">📝 Steps will be shown here...</div>
+
+    <div class="queue-container" id="queueContainer"></div>
+
+    <div class="quiz-container" id="quizContainer">
+      <h3>🧠 Quick Quiz:</h3>
+      <p>Loading quiz...</p>
+    </div>
+
+    <div class="emoji" id="emojiFeedback">😊</div>
+  </div>
+
+  <audio id="soundEnqueue" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+  <audio id="soundDequeue" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+
+  <script>
+    let queue = [];
+    const soundEnqueue = document.getElementById("soundEnqueue");
+    const soundDequeue = document.getElementById("soundDequeue");
+    const emoji = document.getElementById("emojiFeedback");
+
+    function renderQueue() {
+      const container = document.getElementById("queueContainer");
+      container.innerHTML = "";
+      queue.forEach((val, i) => {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.innerText = val;
+
+        if (i === 0) {
+          const pointer = document.createElement("div");
+          pointer.className = "pointer";
+          pointer.innerText = "Front";
+          box.appendChild(pointer);
+        }
+        if (i === queue.length - 1) {
+          const pointer = document.createElement("div");
+          pointer.className = "pointer";
+          pointer.innerText = "Rear";
+          pointer.style.top = "60px";
+          box.appendChild(pointer);
+        }
+
+        container.appendChild(box);
+      });
+
+      document.getElementById("stats").innerText = `Queue Size: ${queue.length} | Elements: [${queue.join(', ')}]`;
+    }
+
+    function enqueue() {
+      const val = document.getElementById("value").value.trim();
+      if (val) {
+        queue.push(val);
+        soundEnqueue.play();
+        document.getElementById("steps").innerText = `✅ Enqueued "${val}" to the queue.`;
+        renderQueue();
+
+        const lastBox = document.querySelector(".queue-container .box:last-child");
+        if (lastBox) lastBox.classList.add("enqueue-anim");
+
+        document.getElementById("value").value = "";
+        animateEmoji("😊");
+      }
+    }
+
+    function dequeue() {
+      if (queue.length === 0) {
+        document.getElementById("steps").innerText = "⚠️ Queue is empty! Cannot dequeue.";
+        animateEmoji("😢");
+        return;
+      }
+
+      const container = document.getElementById("queueContainer");
+      const firstBox = container.querySelector(".box:first-child");
+      if (firstBox) {
+        firstBox.classList.add("dequeue-anim");
+        setTimeout(() => {
+          queue.shift();
+          soundDequeue.play();
+          document.getElementById("steps").innerText = `🗑️ Dequeued element from the queue.`;
+          renderQueue();
+          animateEmoji("👋");
+        }, 300);
+      }
+    }
+
+    function resetQueue() {
+      queue = [];
+      renderQueue();
+      document.getElementById("steps").innerText = "🔄 Queue has been reset.";
+      animateEmoji("🧹");
+    }
+
+    function animateEmoji(symbol) {
+      emoji.innerText = symbol;
+      emoji.classList.add("bounce");
+      setTimeout(() => emoji.classList.remove("bounce"), 600);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    const quizQuestions = [
+      {
+        question: "What happens if you dequeue from an empty queue?",
+        options: ["Overflow", "Underflow"],
+        answer: "Underflow"
+      },
+      {
+        question: "Which operation inserts data into the queue?",
+        options: ["Dequeue", "Enqueue"],
+        answer: "Enqueue"
+      },
+      {
+        question: "Which pointer moves during dequeue?",
+        options: ["Front", "Rear"],
+        answer: "Front"
+      },
+      {
+        question: "Which data structure follows FIFO?",
+        options: ["Stack", "Queue"],
+        answer: "Queue"
+      },
+      {
+        question: "In a queue, where is the new element inserted?",
+        options: ["Front", "Rear"],
+        answer: "Rear"
+      }
+    ];
+
+    window.onload = () => {
+      const quizContainer = document.getElementById("quizContainer");
+      const q = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+      quizContainer.innerHTML = `
+        <h3>🧠 Quick Quiz:</h3>
+        <p>${q.question}</p>
+        ${q.options.map(opt => `<button onclick="checkAnswer('${opt}', '${q.answer}')">${opt}</button>`).join('')}
+      `;
+    };
+
+    function checkAnswer(selected, correct) {
+      if (selected === correct) {
+        alert("✅ Correct!");
+        animateEmoji("🎉");
+      } else {
+        alert("❌ Incorrect. Try again!");
+        animateEmoji("😅");
+      }
+    }
+  </script>
+</body>
+</html>
