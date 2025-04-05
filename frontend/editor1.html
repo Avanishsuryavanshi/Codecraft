@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor | CodeQuest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .editor-container {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+        }
+        .line-numbers {
+            color: #64748b;
+            user-select: none;
+        }
+        .ai-feedback {
+            border-left: 3px solid #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-code text-blue-400 text-xl"></i>
+                <span class="text-xl font-bold">CodeQuest</span>
+            </div>
+            <div class="flex space-x-6 ml-10">
+                <a href="index.html" class="hover:text-blue-400 transition">Home</a>
+                <a href="#" class="text-blue-400 font-medium">Editor</a>
+                <a href="challenges.html" class="hover:text-blue-400 transition">Challenges</a>
+                <a href="visualizer.html" class="hover:text-blue-400 transition">Visualizer</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition">Leaderboard</a>
+            </div>
+            <div class="ml-auto flex items-center space-x-4">
+                <span class="text-blue-400">100 XP</span>
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md">
+                    <i class="fas fa-user mr-2"></i>Profile
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Editor Layout -->
+    <main class="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Problem Statement -->
+        <div class="lg:col-span-1 bg-gray-800 p-6 rounded-lg h-fit sticky top-20">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">Challenge: Sum of Two Numbers</h2>
+            <div class="space-y-4">
+                <p>Write a function that takes two numbers as arguments and returns their sum.</p>
+                <div class="bg-gray-700 p-4 rounded">
+                    <h3 class="font-bold mb-2">Example:</h3>
+                    <pre class="text-green-400">sum(5, 3) → 8</pre>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <h3 class="font-bold mb-2">Constraints:</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Both inputs will be numbers</li>
+                        <li>No need to handle invalid inputs</li>
+                    </ul>
+                </div>
+                <button id="hintBtn" class="bg-gray-700 hover:bg-gray-600 w-full py-2 rounded">
+                    <i class="fas fa-lightbulb mr-2"></i>Get Hint
+                </button>
+                <button id="runBtn" class="bg-green-600 hover:bg-green-700 w-full py-2 rounded">
+                    <i class="fas fa-play mr-2"></i>Run Code
+                </button>
+            </div>
+        </div>
+
+        <!-- Code Editor -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="editor-container rounded-lg overflow-hidden">
+                <div class="flex items-center bg-gray-700 px-4 py-2">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <span class="ml-2 text-sm">solution.js</span>
+                </div>
+                <div class="p-4">
+                    <div class="flex">
+                        <div class="line-numbers pr-4 text-right select-none">
+                            1<br>2<br>3<br>4<br>5
+                        </div>
+                        <textarea id="codeEditor" class="w-full bg-transparent font-mono outline-none resize-none" 
+                                  rows="5" spellcheck="false">function sum(a, b) {
+    // Your code here
+}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Feedback Section -->
+            <div id="aiFeedback" class="ai-feedback bg-gray-800 p-4 rounded-lg hidden">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-robot text-blue-400 mr-2"></i>
+                    <h3 class="font-bold">AI Assistant</h3>
+                </div>
+                <div id="feedbackContent" class="text-sm">
+                    <!-- AI feedback will appear here -->
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div id="testResults" class="bg-gray-800 p-4 rounded-lg hidden">
+                <h3 class="font-bold mb-2">Test Results</h3>
+                <div id="testResultsContent" class="space-y-2">
+                    <!-- Test results will appear here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="main.js"></script>
+    <script>
+        // Editor functionality
+        const codeEditor = document.getElementById('codeEditor');
+        const aiFeedback = document.getElementById('aiFeedback');
+        const feedbackContent = document.getElementById('feedbackContent');
+        const testResults = document.getElementById('testResults');
+        const testResultsContent = document.getElementById('testResultsContent');
+        const runBtn = document.getElementById('runBtn');
+        const hintBtn = document.getElementById('hintBtn');
+
+        // Auto-resize textarea
+        codeEditor.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            
+            // Update line numbers
+            const lines = this.value.split('\n').length;
+            document.querySelector('.line-numbers').innerHTML = 
+                Array.from({length: Math.max(5, lines)}, (_, i) => i + 1).join('<br>');
+        });
+
+        // Run code button
+        runBtn.addEventListener('click', function() {
+            const code = codeEditor.value;
+            
+            // Simulate AI analysis
+            simulateAIFeedback(code);
+            
+            // Simulate test cases
+            runTestCases(code);
+            
+            // Award XP
+            if (window.user) {
+                window.user.addXP(10);
+            }
+        });
+
+        // Hint button
+        hintBtn.addEventListener('click', function() {
+            feedbackContent.innerHTML = `
+                <p class="text-yellow-400 mb-2">💡 Hint:</p>
+                <p>Try using the + operator to add the two parameters together.</p>
+                <p class="mt-2 text-sm text-gray-400">Example: <code>return a + b;</code></p>
+            `;
+            aiFeedback.classList.remove('hidden');
+        });
+
+        function simulateAIFeedback(code) {
+            let feedback = '';
+            
+            if (code.includes('// Your code here')) {
+                feedback = `
+                    <p class="text-red-400 mb-2">⚠️ Issue detected:</p>
+                    <p>You haven't implemented the function yet. Try adding code between the curly braces.</p>
+                `;
+            } else if (!code.includes('return')) {
+                feedback = `
+                    <p class="text-red-400 mb-2">⚠️ Issue detected:</p>
+                    <p>Your function needs a <code>return</code> statement to output the result.</p>
+                `;
+            } else {
+                feedback = `
+                    <p class="text-green-400 mb-2">✓ Looking good!</p>
+                    <p>Your function appears to be properly structured. Try running it to test if it works.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedback;
+            aiFeedback.classList.remove('hidden');
+        }
+
+        function runTestCases(code) {
+            // Try to execute the code (in a safe way)
+            try {
+                // Create a function from the code
+                const func = new Function('a', 'b', code + '\nreturn sum(a, b);');
+                
+                // Run test cases
+                const testCases = [
+                    { input: [2, 3], expected: 5 },
+                    { input: [0, 0], expected: 0 },
+                    { input: [-1, 1], expected: 0 },
+                    { input: [10, 20], expected: 30 }
+                ];
+                
+                let resultsHtml = '';
+                let allPassed = true;
+                
+                testCases.forEach((test, i) => {
+                    const result = func(...test.input);
+                    const passed = result === test.expected;
+                    allPassed = allPassed && passed;
+                    
+                    resultsHtml += `
+                        <div class="p-2 rounded ${passed ? 'bg-green-900' : 'bg-red-900'}">
+                            <div class="flex justify-between">
+                                <span>Test ${i + 1}: sum(${test.input.join(', ')})</span>
+                                <span>${passed ? '✓ Passed' : '✗ Failed'}</span>
+                            </div>
+                            ${!passed ? `
+                                <div class="mt-1 text-sm">
+                                    Expected: ${test.expected}, Got: ${result}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                testResultsContent.innerHTML = resultsHtml;
+                testResults.classList.remove('hidden');
+                
+                if (allPassed) {
+                    feedbackContent.innerHTML = `
+                        <p class="text-green-400 mb-2">🎉 Success!</p>
+                        <p>All test cases passed! Great job!</p>
+                    `;
+                }
+            } catch (error) {
+                feedbackContent.innerHTML = `
+                    <p class="text-red-400 mb-2">⚠️ Runtime Error:</p>
+                    <p>${error.message}</p>
+                `;
+                testResults.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
