@@ -110,6 +110,111 @@
       border-radius: 4px;
       font-size: 0.75rem;
     }
+
+    .operation-message {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #292947;
+      color: #00ffe1;
+      border: 1px solid #00ffe1;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .operation-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .quiz-section {
+      margin-top: 30px;
+      background-color: #292947;
+      padding: 20px;
+      border-radius: 10px;
+      width: 50%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .quiz-section.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .quiz-question {
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quiz-option {
+      background-color: #00ffe1;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .quiz-option:hover {
+      background-color: #00c1a3;
+      transform: scale(1.05);
+    }
+
+    .quiz-option.correct {
+      background-color: #4caf50;
+      transform: scale(1.1);
+    }
+
+    .quiz-option.incorrect {
+      background-color: #f44336;
+      transform: scale(1.1);
+    }
+
+    .quiz-button {
+      background-color: #00ffe1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .quiz-button:hover {
+      background-color: #00c1a3;
+    }
+
+    .quiz-feedback {
+      font-size: 1rem;
+      color: #ff4d4d;
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .quiz-feedback.correct {
+      color: #4caf50;
+      opacity: 1;
+    }
+
+    .quiz-feedback.incorrect {
+      color: #f44336;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -117,20 +222,51 @@
 
   <div class="controls">
     <input type="number" id="inputValue" placeholder="Value" />
-    <button onclick="insertAtEnd()">Insert</button>
-    <button onclick="deleteFromFront()">Delete Head</button>
+    <button onclick="insertAnimated()">Insert Node</button>
+    <button onclick="deleteFromFront()">Delete Node</button>
     <button onclick="searchValue()">Search</button>
     <button onclick="resetList()">Reset</button>
   </div>
 
   <div class="linked-list" id="linkedList"></div>
 
+  <div class="operation-message" id="operationMessage"></div>
+
+  <div class="quiz-section" id="quizSection">
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div class="quiz-options" id="quizOptions"></div>
+    <button class="quiz-button" onclick="loadRandomQuiz()">Next Quiz</button>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+  </div>
+
   <script>
     let list = [];
-
     const linkedListContainer = document.getElementById('linkedList');
+    
+    const quizQuestions = [
+      {
+        question: "What is a Linked List?",
+        options: ["A linear data structure", "A type of array", "A non-linear data structure", "None of the above"],
+        correctAnswer: 0
+      },
+      {
+        question: "What is the difference between a singly and doubly linked list?",
+        options: ["Singly linked list has two pointers", "Doubly linked list allows backward traversal", "Singly linked list is slower", "None of the above"],
+        correctAnswer: 1
+      },
+      {
+        question: "How do you delete the last element in a linked list?",
+        options: ["By traversing the list", "By updating the head pointer", "By setting next of the previous node to null", "None of the above"],
+        correctAnswer: 2
+      },
+      {
+        question: "What are the advantages of a linked list over an array?",
+        options: ["Dynamic size", "Efficient insertions and deletions", "Both", "None of the above"],
+        correctAnswer: 2
+      }
+    ];
 
-    function renderList(highlightIndex = -1) {
+    function renderList(highlightIndex = -1, animateIndex = -1) {
       linkedListContainer.innerHTML = '';
       list.forEach((val, index) => {
         const node = document.createElement('div');
@@ -155,7 +291,7 @@
           node.appendChild(label);
         }
 
-        if (index === highlightIndex) {
+        if (index === highlightIndex || index === animateIndex) {
           node.style.transform = 'scale(1.1)';
           node.style.border = '2px solid yellow';
         }
@@ -172,18 +308,28 @@
       });
     }
 
-    function insertAtEnd() {
+    async function insertAnimated() {
       const val = document.getElementById('inputValue').value;
       if (val === '') return alert('Please enter a value!');
       list.push(val);
-      renderList();
+      showMessage(`Inserting ${val}`);
+      await animateInsertion();
       document.getElementById('inputValue').value = '';
+    }
+
+    async function animateInsertion() {
+      for (let i = 0; i < list.length; i++) {
+        renderList(-1, i);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
     }
 
     function deleteFromFront() {
       if (list.length === 0) return alert('List is empty!');
+      const deleted = list[0];
       list.shift();
       renderList();
+      showMessage(`Deleted head: ${deleted}`);
     }
 
     function searchValue() {
@@ -195,88 +341,79 @@
         return;
       }
       renderList(index);
+      showMessage(`Found ${val} at index ${index}`);
     }
 
     function resetList() {
       list = [];
       renderList();
+      showMessage('List reset');
+      loadRandomQuiz(); // Load a new quiz question after reset
     }
 
-    // Initial empty render
-    renderList();
-  </script>
+    function showMessage(message) {
+      const msgBox = document.getElementById('operationMessage');
+      msgBox.textContent = message;
+      msgBox.classList.add('show');
+      setTimeout(() => msgBox.classList.remove('show'), 2000);
+    }
 
-  <!-- QUIZ SECTION -->
-  <div style="margin: 40px auto; max-width: 600px; background: #292947; padding: 20px; border-radius: 12px; box-shadow: 0 6px 14px rgba(0,0,0,0.3);">
-    <h2 style="color: #00ffe1; font-size: 1.5rem; margin-bottom: 12px; text-align: center;">🧠 Quick Quiz</h2>
-    <p id="quiz-question" style="color: #e0e0e0; font-size: 1rem; margin-bottom: 10px;"></p>
-    <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
-    <p id="quiz-feedback" style="margin-top: 12px; font-weight: bold;"></p>
-  </div>
-
-  <script>
-    const quizData = [
-      {
-        question: "What is the time complexity to insert at the beginning of a singly linked list?",
-        options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
-        answer: "O(1)"
-      },
-      {
-        question: "What does the 'next' pointer in the last node point to?",
-        options: ["Head", "Tail", "Null", "Itself"],
-        answer: "Null"
-      },
-      {
-        question: "Which operation is expensive in a singly linked list?",
-        options: ["Insert at front", "Delete head", "Access by index", "Insert at end"],
-        answer: "Access by index"
-      },
-      {
-        question: "To delete a node in the middle, what do you need?",
-        options: ["Index only", "Previous node", "Tail node", "Any node"],
-        answer: "Previous node"
-      }
-    ];
-
-    function renderQuiz() {
-      const quiz = quizData[Math.floor(Math.random() * quizData.length)];
-      const questionEl = document.getElementById("quiz-question");
-      const optionsEl = document.getElementById("quiz-options");
-      const feedbackEl = document.getElementById("quiz-feedback");
-
-      questionEl.textContent = quiz.question;
-      optionsEl.innerHTML = '';
-      feedbackEl.textContent = '';
-
-      quiz.options.forEach(option => {
-        const btn = document.createElement('button');
-        btn.textContent = option;
-        btn.style.padding = '10px';
-        btn.style.borderRadius = '8px';
-        btn.style.background = '#00ffe1';
-        btn.style.color = '#000';
-        btn.style.fontWeight = 'bold';
-        btn.style.cursor = 'pointer';
-        btn.style.border = 'none';
-        btn.style.transition = 'background 0.2s ease';
-        btn.onmouseover = () => btn.style.background = '#00c1a3';
-        btn.onmouseout = () => btn.style.background = '#00ffe1';
-
-        btn.onclick = () => {
-          if (option === quiz.answer) {
-            feedbackEl.textContent = "✅ Correct!";
-            feedbackEl.style.color = "#00ff88";
-          } else {
-            feedbackEl.textContent = "❌ Wrong answer!";
-            feedbackEl.style.color = "#ff4d4d";
-          }
-        };
-
-        optionsEl.appendChild(btn);
+    function loadRandomQuiz() {
+      const randomQuiz = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+      const quizQuestionElement = document.getElementById('quizQuestion');
+      quizQuestionElement.textContent = randomQuiz.question;
+      
+      const quizOptionsElement = document.getElementById('quizOptions');
+      quizOptionsElement.innerHTML = '';
+      randomQuiz.options.forEach((option, index) => {
+        const optionButton = document.createElement('button');
+        optionButton.className = 'quiz-option';
+        optionButton.textContent = option;
+        optionButton.onclick = () => checkAnswer(index, randomQuiz.correctAnswer, optionButton);
+        quizOptionsElement.appendChild(optionButton);
       });
+
+      // Reveal quiz section with animation
+      document.getElementById('quizSection').classList.add('show');
     }
 
-    renderQuiz();
+    function checkAnswer(selectedIndex, correctIndex, optionButton) {
+      // Show the selected option as incorrect or correct
+      if (selectedIndex === correctIndex) {
+        optionButton.classList.add('correct');
+        showFeedback('Correct! Great job!', 'correct');
+      } else {
+        optionButton.classList.add('incorrect');
+        showFeedback('Oops! That\'s incorrect. The correct answer is:', 'incorrect');
+
+        // Highlight the correct answer
+        const correctButton = document.querySelectorAll('.quiz-option')[correctIndex];
+        correctButton.classList.add('correct');
+      }
+
+      // Disable further answering
+      const options = document.querySelectorAll('.quiz-option');
+      options.forEach(option => option.disabled = true);
+    }
+
+    function showFeedback(message, type) {
+      const feedbackElement = document.getElementById('quizFeedback');
+      feedbackElement.textContent = message;
+      feedbackElement.classList.add(type);
+
+      // Show the correct answer text if the answer is incorrect
+      if (type === 'incorrect') {
+        const correctAnswerText = document.querySelectorAll('.quiz-option')[correctIndex].textContent;
+        feedbackElement.textContent += ` ${correctAnswerText}`;
+      }
+
+      setTimeout(() => feedbackElement.classList.remove(type), 3000); // Remove feedback color after 3 sec
+    }
+
+    // Initialize the first quiz on page load
+    loadRandomQuiz();
+
+    renderList();
   </script>
 </body>
 </html>
