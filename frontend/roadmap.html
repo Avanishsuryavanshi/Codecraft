@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>AI Roadmap Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -39,7 +40,7 @@
       }
     }
 
-    input, textarea {
+    input {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
@@ -51,7 +52,7 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    input:focus, textarea:focus {
+    input:focus {
       transform: scale(1.02);
       box-shadow: 0 0 8px #00bfff50;
       outline: none;
@@ -99,10 +100,25 @@
       }
     }
 
-    textarea {
-      height: 400px;
-      resize: vertical;
+    .rendered-output {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
       margin-top: 20px;
+      color: #f0f0f0;
+      line-height: 1.6;
+      white-space: normal;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #00bfff;
+      margin-top: 10px;
+    }
+
+    a {
+      color: #00ffff;
     }
 
     ::placeholder {
@@ -114,7 +130,7 @@
 
   <h2>🎯 Roadmap Generator</h2>
 
-  <input type="text" id="topicInput" placeholder="Enter a topic (e.g., MERN stack)">
+  <input type="text" id="topicInput" placeholder="Enter a topic (e.g., Python, MERN stack)">
   
   <div>
     <button onclick="generateRoadmap()">Generate Roadmap</button>
@@ -122,17 +138,18 @@
     <button onclick="copyMarkdown()">Copy as Markdown</button>
   </div>
 
-  <textarea id="output" readonly placeholder="Your roadmap will appear here..."></textarea>
+  <div id="output" class="rendered-output">Your roadmap will appear here...</div>
 
   <script>
     const API_KEY = "AIzaSyBn7fequDpWC20nHRxltrhWjq2bg9_WSvA"; // Replace with your actual Gemini API key
+    let lastMarkdown = "";
 
     async function generateRoadmap() {
       const topic = document.getElementById("topicInput").value.trim();
       const outputBox = document.getElementById("output");
 
       if (!topic) {
-        outputBox.value = "❗ Please enter a topic.";
+        outputBox.innerHTML = "<p>❗ Please enter a topic.</p>";
         return;
       }
 
@@ -170,28 +187,28 @@ Break it into clear collapsible steps with:
         const roadmap = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (roadmap) {
-          outputBox.value = roadmap;
+          lastMarkdown = roadmap;
+          outputBox.innerHTML = marked.parse(roadmap);
         } else {
-          outputBox.value = "⚠️ Error: No response from Gemini 1.5.\n" + JSON.stringify(data, null, 2);
+          outputBox.innerHTML = "<p>⚠️ Error: No response from Gemini 1.5.</p><pre>" + JSON.stringify(data, null, 2) + "</pre>";
         }
       } catch (error) {
-        outputBox.value = `❌ Network error: ${error.message}`;
+        outputBox.innerHTML = `<p>❌ Network error: ${error.message}</p>`;
       }
     }
 
-    // Typing animation
     function typeText(text, element) {
-      element.value = "";
+      element.innerHTML = "";
       let index = 0;
       const interval = setInterval(() => {
-        element.value += text.charAt(index);
+        element.innerHTML += text.charAt(index);
         index++;
         if (index >= text.length) clearInterval(interval);
       }, 40);
     }
 
     function downloadPDF() {
-      const text = document.getElementById("output").value;
+      const text = lastMarkdown || "No roadmap to export.";
       const blob = new Blob([text], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -202,7 +219,7 @@ Break it into clear collapsible steps with:
     }
 
     function copyMarkdown() {
-      const text = document.getElementById("output").value;
+      const text = lastMarkdown || "No roadmap to copy.";
       navigator.clipboard.writeText(text).then(() => {
         alert("✅ Copied as Markdown!");
       }).catch(err => {

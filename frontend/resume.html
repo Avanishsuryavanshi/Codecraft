@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Detailed Resume Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: #f5f5f5;
+      padding: 30px;
+    }
+    #form, #resume {
+      background: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      width: 45%;
+      min-width: 300px;
+    }
+    input, textarea {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    h2, h3 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .section {
+      margin-bottom: 15px;
+    }
+
+    /* Resume Preview Styles */
+    #resume-preview {
+      padding: 30px;
+      color: #000;
+    }
+    .header {
+      text-align: center;
+    }
+    .role {
+      color: #3399ff;
+      font-size: 20px;
+    }
+    .section-title {
+      border-bottom: 1px solid #3399ff;
+      margin-top: 20px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="form">
+  <h2>Enter Resume Info</h2>
+  <input id="name" placeholder="Full Name" />
+  <input id="title" placeholder="Job Title" />
+  <input id="contact" placeholder="Email | Phone | Address" />
+  <textarea id="summary" placeholder="Professional Summary"></textarea>
+
+  <!-- Work Experience -->
+  <h3>Work Experience</h3>
+  <div id="experience-section">
+    <div class="experience-entry section">
+      <input placeholder="Job Title" class="job-title" />
+      <input placeholder="Company" class="company" />
+      <input placeholder="Duration" class="duration" />
+      <textarea placeholder="Description (one per line)" class="desc"></textarea>
+    </div>
+  </div>
+  <button onclick="addExperience()">+ Add Experience</button>
+
+  <!-- Education -->
+  <h3>Education</h3>
+  <div id="education-section">
+    <div class="education-entry section">
+      <input placeholder="Degree" class="degree" />
+      <input placeholder="University" class="university" />
+      <input placeholder="Year" class="year" />
+    </div>
+  </div>
+  <button onclick="addEducation()">+ Add Education</button>
+
+  <!-- Skills -->
+  <h3>Skills</h3>
+  <div id="skills-section" class="section">
+    <input placeholder="Skill" class="skill" />
+  </div>
+  <button onclick="addSkill()">+ Add Skill</button>
+
+  <br><br>
+  <button onclick="generateResume()">Generate Resume</button>
+  <button onclick="downloadResume()">Download as PDF</button>
+</div>
+
+<div id="resume">
+  <div id="resume-preview">
+    <!-- Resume preview will be generated here -->
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  function addExperience() {
+    const container = document.getElementById('experience-section');
+    const entry = document.createElement('div');
+    entry.className = 'experience-entry section';
+    entry.innerHTML = `
+      <input placeholder="Job Title" class="job-title" />
+      <input placeholder="Company" class="company" />
+      <input placeholder="Duration" class="duration" />
+      <textarea placeholder="Description (one per line)" class="desc"></textarea>
+    `;
+    container.appendChild(entry);
+  }
+
+  function addEducation() {
+    const container = document.getElementById('education-section');
+    const entry = document.createElement('div');
+    entry.className = 'education-entry section';
+    entry.innerHTML = `
+      <input placeholder="Degree" class="degree" />
+      <input placeholder="University" class="university" />
+      <input placeholder="Year" class="year" />
+    `;
+    container.appendChild(entry);
+  }
+
+  function addSkill() {
+    const container = document.getElementById('skills-section');
+    const input = document.createElement('input');
+    input.className = 'skill';
+    input.placeholder = 'Skill';
+    container.appendChild(input);
+  }
+
+  function generateResume() {
+    const name = document.getElementById('name').value;
+    const title = document.getElementById('title').value;
+    const contact = document.getElementById('contact').value;
+    const summary = document.getElementById('summary').value;
+
+    const expEntries = document.querySelectorAll('.experience-entry');
+    const experiences = Array.from(expEntries).map(entry => {
+      const job = entry.querySelector('.job-title').value;
+      const company = entry.querySelector('.company').value;
+      const duration = entry.querySelector('.duration').value;
+      const desc = entry.querySelector('.desc').value.split('\n').map(d => `<li>${d}</li>`).join('');
+      return `<p><strong>${job}</strong> at ${company} <br><em>${duration}</em></p><ul>${desc}</ul>`;
+    }).join('');
+
+    const eduEntries = document.querySelectorAll('.education-entry');
+    const education = Array.from(eduEntries).map(entry => {
+      const degree = entry.querySelector('.degree').value;
+      const university = entry.querySelector('.university').value;
+      const year = entry.querySelector('.year').value;
+      return `<p><strong>${degree}</strong>, ${university} (${year})</p>`;
+    }).join('');
+
+    const skillInputs = document.querySelectorAll('.skill');
+    const skills = Array.from(skillInputs).map(s => `<li>${s.value}</li>`).join('');
+
+    document.getElementById('resume-preview').innerHTML = `
+      <div class="header">
+        <h1>${name}</h1>
+        <div class="role">${title}</div>
+        <div>${contact}</div>
+      </div>
+
+      <h3 class="section-title">Professional Summary</h3>
+      <p>${summary}</p>
+
+      <h3 class="section-title">Work Experience</h3>
+      ${experiences}
+
+      <h3 class="section-title">Education</h3>
+      ${education}
+
+      <h3 class="section-title">Skills</h3>
+      <ul>${skills}</ul>
+    `;
+  }
+
+  function downloadResume() {
+    const element = document.getElementById("resume-preview");
+    html2pdf().from(element).save("resume.pdf");
+  }
+</script>
+
+</body>
+</html>
+n
