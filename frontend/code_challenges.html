@@ -260,6 +260,12 @@
 
     <script src="main.js"></script>
     <script>
+        const username = localStorage.getItem('username');
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        console.log(storedUser);
+        const email = storedUser?.email;
+         console.log("User email:", email);
+
         // Filter challenges by difficulty
         document.getElementById('filterAll').addEventListener('click', () => {
             document.querySelectorAll('.challenge-card').forEach(card => {
